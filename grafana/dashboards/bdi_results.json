@@ -232,7 +232,7 @@
   {
    "id": 6,
    "type": "row",
-   "title": "E1 · Schema drift   ·   E2 · Batch vs official",
+   "title": "Dữ liệu · thống kê mô tả (5 cặp × 4 tháng)",
    "collapsed": false,
    "gridPos": {
     "x": 0,
@@ -243,6 +243,55 @@
   },
   {
    "id": 7,
+   "type": "table",
+   "title": "Quy mô theo cặp × tháng",
+   "description": "experiments/descriptive_stats.py: số trade, quote volume, khối lượng mua chủ động so tuyệt đối với klines",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 7,
+    "w": 24,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "\nSELECT symbol AS \"Cặp\", period AS \"Tháng\", n_aggtrades AS \"aggTrade\", n_trades AS \"Trade lẻ\",\n       round(trades_per_agg::numeric, 2) AS \"Trade/aggTrade\",\n       round((quote_usdt_per_day / 1e6)::numeric, 0) AS \"Triệu USDT/ngày\",\n       trades_per_min_p50 AS \"Trade/phút p50\", trades_per_min_max AS \"Trade/phút max\",\n       round(taker_buy_pct_trades::numeric, 1) AS \"Mua chủ động % (trade)\",\n       round(taker_buy_pct_quote::numeric, 1) AS \"Mua chủ động % (USDT)\",\n       pct_match_trades AS \"Khớp klines: trades %\", pct_match_quote AS \"quote %\", pct_match_taker_buy AS \"mua chủ động %\"\nFROM exp_desc ORDER BY 1, 2"
+    }
+   ],
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm"
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   }
+  },
+  {
+   "id": 8,
+   "type": "row",
+   "title": "E1 · Schema drift   ·   E2 · Batch vs official",
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 15,
+    "w": 24,
+    "h": 1
+   }
+  },
+  {
+   "id": 9,
    "type": "barchart",
    "title": "E1 · % nến đúng: naive vs drift-aware",
    "description": "Naive hỏng toàn bộ 2026 (timestamp µs), vẫn đúng 2022 (ms)",
@@ -252,7 +301,7 @@
    },
    "gridPos": {
     "x": 0,
-    "y": 7,
+    "y": 16,
     "w": 12,
     "h": 8
    },
@@ -331,7 +380,7 @@
    }
   },
   {
-   "id": 8,
+   "id": 10,
    "type": "table",
    "title": "E2 · % khớp từng trường theo cặp × tháng",
    "description": "",
@@ -341,7 +390,7 @@
    },
    "gridPos": {
     "x": 12,
-    "y": 7,
+    "y": 16,
     "w": 12,
     "h": 8
    },
@@ -368,19 +417,202 @@
    }
   },
   {
-   "id": 9,
+   "id": 11,
    "type": "row",
-   "title": "E3 · Trade-off watermark",
+   "title": "C2 · Phản chứng: bỏ từng điểm kỹ thuật của build_candles",
    "collapsed": false,
    "gridPos": {
     "x": 0,
-    "y": 15,
+    "y": 24,
     "w": 24,
     "h": 1
    }
   },
   {
-   "id": 10,
+   "id": 12,
+   "type": "barchart",
+   "title": "% phút còn khớp official khi làm sai (trade đã xáo thứ tự)",
+   "description": "experiments/c2_counterfactual.py trên 878 400 nến; trung bình có trọng số theo số nến",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 25,
+    "w": 16,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "\nSELECT replace(symbol, 'USDT', '') AS x,\n       round((sum(pct_ok_6 * n_official) / sum(n_official))::numeric, 1) AS \"Đúng (build_candles)\",\n       round((sum(pct_open_first * n_official) / sum(n_official))::numeric, 1) AS \"Open = first\",\n       round((sum(pct_close_last * n_official) / sum(n_official))::numeric, 1) AS \"Close = last\",\n       round((sum(pct_vol_double * n_official) / sum(n_official))::numeric, 1) AS \"Volume double\",\n       round((sum(pct_trades_rows * n_official) / sum(n_official))::numeric, 1) AS \"trades = số dòng\"\nFROM exp_c2 GROUP BY symbol ORDER BY symbol"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "custom": {
+      "fillOpacity": 90,
+      "lineWidth": 0
+     },
+     "min": 0,
+     "max": 100
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Đúng (build_candles)"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#2a78d6"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Open = first"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#eb6834"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Close = last"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#eda100"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Volume double"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#e87ba4"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "trades = số dòng"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#1baf7a"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "xField": "x",
+    "orientation": "vertical",
+    "showValue": "auto",
+    "stacking": "none",
+    "groupWidth": 0.7,
+    "barWidth": 0.9,
+    "xTickLabelRotation": 0,
+    "legend": {
+     "showLegend": true,
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "id": 13,
+   "type": "table",
+   "title": "quote_volume: tích Decimal bị làm tròn",
+   "description": "decimal(24,8) × decimal(24,8) bị làm tròn về 6 chữ số lẻ; ép về decimal(18,8) trước khi nhân thì chính xác",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 16,
+    "y": 25,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "\nSELECT symbol AS \"Cặp\",\n       round((sum(pct_quote_current * n_official) / sum(n_official))::numeric, 2) AS \"Hiện tại %\",\n       round((sum(pct_quote_fixed * n_official) / sum(n_official))::numeric, 2) AS \"decimal(18,8)² %\"\nFROM exp_c2 GROUP BY symbol ORDER BY symbol"
+    }
+   ],
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm"
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   }
+  },
+  {
+   "id": 14,
+   "type": "row",
+   "title": "E3 · Trade-off watermark",
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 33,
+    "w": 24,
+    "h": 1
+   }
+  },
+  {
+   "id": 15,
    "type": "barchart",
    "title": "E3 · % nến khớp official theo watermark",
    "description": "Dữ liệu thật lệch thứ tự tối đa 0,78 s nên mọi watermark đều 100%",
@@ -390,7 +622,7 @@
    },
    "gridPos": {
     "x": 0,
-    "y": 16,
+    "y": 34,
     "w": 12,
     "h": 8
    },
@@ -469,7 +701,7 @@
    }
   },
   {
-   "id": 11,
+   "id": 16,
    "type": "barchart",
    "title": "E3 · Độ trễ ghi nến p95 theo watermark",
    "description": "",
@@ -479,7 +711,7 @@
    },
    "gridPos": {
     "x": 12,
-    "y": 16,
+    "y": 34,
     "w": 12,
     "h": 8
    },
@@ -556,19 +788,19 @@
    }
   },
   {
-   "id": 12,
+   "id": 17,
    "type": "row",
    "title": "E4 · Fault injection",
    "collapsed": false,
    "gridPos": {
     "x": 0,
-    "y": 24,
+    "y": 42,
     "w": 24,
     "h": 1
    }
   },
   {
-   "id": 13,
+   "id": 18,
    "type": "table",
    "title": "E4 · Sự cố chủ động",
    "description": "",
@@ -578,7 +810,7 @@
    },
    "gridPos": {
     "x": 0,
-    "y": 25,
+    "y": 43,
     "w": 14,
     "h": 6
    },
@@ -605,7 +837,7 @@
    }
   },
   {
-   "id": 14,
+   "id": 19,
    "type": "table",
    "title": "E4 · Khoảng trống WS đã backfill (gần nhất)",
    "description": "",
@@ -615,7 +847,7 @@
    },
    "gridPos": {
     "x": 14,
-    "y": 25,
+    "y": 43,
     "w": 10,
     "h": 6
    },
@@ -642,19 +874,19 @@
    }
   },
   {
-   "id": 15,
+   "id": 20,
    "type": "row",
    "title": "E5 · Record linkage   ·   E6 · Truy vấn xấp xỉ",
    "collapsed": false,
    "gridPos": {
     "x": 0,
-    "y": 31,
+    "y": 49,
     "w": 24,
     "h": 1
    }
   },
   {
-   "id": 16,
+   "id": 21,
    "type": "barchart",
    "title": "E5 · F1 theo dung sai δ",
    "description": "",
@@ -664,7 +896,7 @@
    },
    "gridPos": {
     "x": 0,
-    "y": 32,
+    "y": 50,
     "w": 12,
     "h": 8
    },
@@ -743,17 +975,17 @@
    }
   },
   {
-   "id": 17,
+   "id": 22,
    "type": "table",
-   "title": "E6 · Chính xác vs xấp xỉ (419,8M dòng)",
-   "description": "Phân vị chính xác trên notional: OutOfMemoryError (6 GB)",
+   "title": "E6 · Chính xác vs xấp xỉ (418,2M dòng, máy rảnh)",
+   "description": "Đo lại 01/11 khi máy rảnh, tốt nhất 3 lần. Lần đo cũ lúc máy tải cao: bảng exp_e6_busy. Phân vị chính xác trên notional: OutOfMemoryError (6 GB)",
    "datasource": {
     "type": "grafana-postgresql-datasource",
     "uid": "bdi-pg"
    },
    "gridPos": {
     "x": 12,
-    "y": 32,
+    "y": 50,
     "w": 12,
     "h": 8
    },
@@ -780,19 +1012,19 @@
    }
   },
   {
-   "id": 18,
+   "id": 23,
    "type": "row",
    "title": "E7 · Phát hiện bất thường   ·   C5 · Chọn nguồn",
    "collapsed": false,
    "gridPos": {
     "x": 0,
-    "y": 40,
+    "y": 58,
     "w": 24,
     "h": 1
    }
   },
   {
-   "id": 19,
+   "id": 24,
    "type": "barchart",
    "title": "E7 · Báo động log-return theo ngày, 11/2022 (5 cặp)",
    "description": "Modified z-score, baseline 1 ngày, |M| > 3,5, sàn |log-return| ≥ 0,5%",
@@ -802,7 +1034,7 @@
    },
    "gridPos": {
     "x": 0,
-    "y": 41,
+    "y": 59,
     "w": 16,
     "h": 8
    },
@@ -879,7 +1111,7 @@
    }
   },
   {
-   "id": 20,
+   "id": 25,
    "type": "table",
    "title": "C5 · Chất lượng nguồn",
    "description": "",
@@ -889,7 +1121,7 @@
    },
    "gridPos": {
     "x": 16,
-    "y": 41,
+    "y": 59,
     "w": 8,
     "h": 8
    },
@@ -916,7 +1148,7 @@
    }
   },
   {
-   "id": 21,
+   "id": 26,
    "type": "table",
    "title": "E7 · Quét tham số",
    "description": "",
@@ -926,7 +1158,7 @@
    },
    "gridPos": {
     "x": 0,
-    "y": 49,
+    "y": 67,
     "w": 24,
     "h": 8
    },
@@ -941,6 +1173,130 @@
      "rawQuery": true,
      "editorMode": "code",
      "rawSql": "\nSELECT \"window\" AS \"W (phút)\", threshold AS \"|M| >\", min_abs_return AS \"Sàn\", ftx_8 AS \"8/11\", ftx_9 AS \"9/11\",\n       ftx_rank_8 AS \"Hạng 8/11\", ftx_rank_9 AS \"Hạng 9/11\",\n       round(per_day_nov22::numeric, 1) AS \"/ngày 11/2022\", round(per_day_quiet26::numeric, 1) AS \"/ngày yên 2026\"\nFROM exp_e7_sweep ORDER BY 1, 2, 3"
+    }
+   ],
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm"
+   },
+   "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+   }
+  },
+  {
+   "id": 27,
+   "type": "barchart",
+   "title": "E7 · Kiểm tra ngoài mẫu: báo động theo ngày, LUNA 5/2022 (giữ nguyên tham số)",
+   "description": "Cấu hình chọn trên FTX, không chỉnh: W = 1 ngày, |M| > 3,5, sàn 0,5%",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 75,
+    "w": 16,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "\nSELECT day AS x, CASE WHEN event THEN alerts END AS \"9–12/5 (LUNA)\", CASE WHEN NOT event THEN alerts END AS \"Ngày khác\"\nFROM exp_e7_luna_daily ORDER BY day"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "custom": {
+      "fillOpacity": 90,
+      "lineWidth": 0
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "9–12/5 (LUNA)"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#eb6834"
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "Ngày khác"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#2a78d6"
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "xField": "x",
+    "orientation": "vertical",
+    "showValue": "auto",
+    "stacking": "normal",
+    "groupWidth": 0.7,
+    "barWidth": 0.9,
+    "xTickLabelRotation": 0,
+    "legend": {
+     "showLegend": true,
+     "displayMode": "list",
+     "placement": "bottom"
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "id": 28,
+   "type": "table",
+   "title": "E7 · LUNA: 6 ngày nhiều báo động nhất",
+   "description": "",
+   "datasource": {
+    "type": "grafana-postgresql-datasource",
+    "uid": "bdi-pg"
+   },
+   "gridPos": {
+    "x": 16,
+    "y": 75,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "grafana-postgresql-datasource",
+      "uid": "bdi-pg"
+     },
+     "format": "table",
+     "rawQuery": true,
+     "editorMode": "code",
+     "rawSql": "\nSELECT day AS \"Ngày\", alerts AS \"Báo động\", rank() OVER (ORDER BY alerts DESC) AS \"Hạng\",\n       CASE WHEN event THEN 'sự kiện' ELSE '' END AS \" \"\nFROM exp_e7_luna_daily ORDER BY alerts DESC LIMIT 6"
     }
    ],
    "options": {

@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 
 DS = {"type": "grafana-postgresql-datasource", "uid": "bdi-pg"}
-BLUE, ORANGE, AQUA = "#2a78d6", "#eb6834", "#1baf7a"
+BLUE, ORANGE, AQUA, YELLOW, PINK = "#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4"
 _id = iter(range(1, 100))
 
 
@@ -87,6 +87,18 @@ P += [
 ]
 
 y = 6
+P.append(row("Dữ liệu · thống kê mô tả (5 cặp × 4 tháng)", y)); y += 1
+P.append(table("Quy mô theo cặp × tháng", """
+SELECT symbol AS "Cặp", period AS "Tháng", n_aggtrades AS "aggTrade", n_trades AS "Trade lẻ",
+       round(trades_per_agg::numeric, 2) AS "Trade/aggTrade",
+       round((quote_usdt_per_day / 1e6)::numeric, 0) AS "Triệu USDT/ngày",
+       trades_per_min_p50 AS "Trade/phút p50", trades_per_min_max AS "Trade/phút max",
+       round(taker_buy_pct_trades::numeric, 1) AS "Mua chủ động % (trade)",
+       round(taker_buy_pct_quote::numeric, 1) AS "Mua chủ động % (USDT)",
+       pct_match_trades AS "Khớp klines: trades %", pct_match_quote AS "quote %", pct_match_taker_buy AS "mua chủ động %"
+FROM exp_desc ORDER BY 1, 2""", 0, y, 24, 8,
+    desc="experiments/descriptive_stats.py: số trade, quote volume, khối lượng mua chủ động so tuyệt đối với klines")); y += 8
+
 P.append(row("E1 · Schema drift   ·   E2 · Batch vs official", y)); y += 1
 P.append(bars("E1 · % nến đúng: naive vs drift-aware", """
 SELECT symbol || ' ' || period AS x,
@@ -100,6 +112,25 @@ SELECT symbol AS "Cặp", month AS "Tháng", n_minutes AS "Số nến",
        match_open AS "O %", match_high AS "H %", match_low AS "L %", match_close AS "C %",
        match_volume AS "V %", match_trades AS "Trades %", all_match AS "Tất cả %"
 FROM exp_e2 ORDER BY 1, 2""", 12, y, 12, 8)); y += 8
+
+P.append(row("C2 · Phản chứng: bỏ từng điểm kỹ thuật của build_candles", y)); y += 1
+P.append(bars("% phút còn khớp official khi làm sai (trade đã xáo thứ tự)", """
+SELECT replace(symbol, 'USDT', '') AS x,
+       round((sum(pct_ok_6 * n_official) / sum(n_official))::numeric, 1) AS "Đúng (build_candles)",
+       round((sum(pct_open_first * n_official) / sum(n_official))::numeric, 1) AS "Open = first",
+       round((sum(pct_close_last * n_official) / sum(n_official))::numeric, 1) AS "Close = last",
+       round((sum(pct_vol_double * n_official) / sum(n_official))::numeric, 1) AS "Volume double",
+       round((sum(pct_trades_rows * n_official) / sum(n_official))::numeric, 1) AS "trades = số dòng"
+FROM exp_c2 GROUP BY symbol ORDER BY symbol""", 0, y, 16, 8, unit="percent", minv=0, maxv=100,
+    series={"Đúng (build_candles)": BLUE, "Open = first": ORANGE, "Close = last": YELLOW,
+            "Volume double": PINK, "trades = số dòng": AQUA},
+    desc="experiments/c2_counterfactual.py trên 878 400 nến; trung bình có trọng số theo số nến"))
+P.append(table("quote_volume: tích Decimal bị làm tròn", """
+SELECT symbol AS "Cặp",
+       round((sum(pct_quote_current * n_official) / sum(n_official))::numeric, 2) AS "Hiện tại %",
+       round((sum(pct_quote_fixed * n_official) / sum(n_official))::numeric, 2) AS "decimal(18,8)² %"
+FROM exp_c2 GROUP BY symbol ORDER BY symbol""", 16, y, 8, 8,
+    desc="decimal(24,8) × decimal(24,8) bị làm tròn về 6 chữ số lẻ; ép về decimal(18,8) trước khi nhân thì chính xác")); y += 8
 
 P.append(row("E3 · Trade-off watermark", y)); y += 1
 P.append(bars("E3 · % nến khớp official theo watermark", """
@@ -133,10 +164,12 @@ SELECT delta_ms || ' ms' AS x,
        max(CASE WHEN method = 'ordered' THEN f1 END) AS "Giữ thứ tự"
 FROM exp_e5 GROUP BY delta_ms ORDER BY delta_ms""", 0, y, 12, 8, minv=0, maxv=1,
     series={"Tham lam theo |Δt|": ORANGE, "Giữ thứ tự": BLUE}))
-P.append(table("E6 · Chính xác vs xấp xỉ (419,8M dòng)", """
+P.append(table("E6 · Chính xác vs xấp xỉ (418,2M dòng, máy rảnh)", """
 SELECT query AS "Phép tính", param AS "Cấu hình", round(seconds::numeric, 1) AS "Thời gian (s)",
        round(rel_error_pct::numeric, 2) AS "Sai số giá trị %", round(rank_error_pct::numeric, 3) AS "Sai số thứ hạng %"
-FROM exp_e6 ORDER BY 1, 2""", 12, y, 12, 8, desc="Phân vị chính xác trên notional: OutOfMemoryError (6 GB)")); y += 8
+FROM exp_e6 ORDER BY 1, 2""", 12, y, 12, 8,
+    desc="Đo lại 01/11 khi máy rảnh, tốt nhất 3 lần. Lần đo cũ lúc máy tải cao: bảng exp_e6_busy. "
+         "Phân vị chính xác trên notional: OutOfMemoryError (6 GB)")); y += 8
 
 P.append(row("E7 · Phát hiện bất thường   ·   C5 · Chọn nguồn", y)); y += 1
 P.append(bars("E7 · Báo động log-return theo ngày, 11/2022 (5 cặp)", """
@@ -152,7 +185,16 @@ P.append(table("E7 · Quét tham số", """
 SELECT "window" AS "W (phút)", threshold AS "|M| >", min_abs_return AS "Sàn", ftx_8 AS "8/11", ftx_9 AS "9/11",
        ftx_rank_8 AS "Hạng 8/11", ftx_rank_9 AS "Hạng 9/11",
        round(per_day_nov22::numeric, 1) AS "/ngày 11/2022", round(per_day_quiet26::numeric, 1) AS "/ngày yên 2026"
-FROM exp_e7_sweep ORDER BY 1, 2, 3""", 0, y, 24, 8))
+FROM exp_e7_sweep ORDER BY 1, 2, 3""", 0, y, 24, 8)); y += 8
+P.append(bars("E7 · Kiểm tra ngoài mẫu: báo động theo ngày, LUNA 5/2022 (giữ nguyên tham số)", """
+SELECT day AS x, CASE WHEN event THEN alerts END AS "9–12/5 (LUNA)", CASE WHEN NOT event THEN alerts END AS "Ngày khác"
+FROM exp_e7_luna_daily ORDER BY day""", 0, y, 16, 8, stacked=True,
+    series={"9–12/5 (LUNA)": ORANGE, "Ngày khác": BLUE},
+    desc="Cấu hình chọn trên FTX, không chỉnh: W = 1 ngày, |M| > 3,5, sàn 0,5%"))
+P.append(table("E7 · LUNA: 6 ngày nhiều báo động nhất", """
+SELECT day AS "Ngày", alerts AS "Báo động", rank() OVER (ORDER BY alerts DESC) AS "Hạng",
+       CASE WHEN event THEN 'sự kiện' ELSE '' END AS " "
+FROM exp_e7_luna_daily ORDER BY alerts DESC LIMIT 6""", 16, y, 8, 8))
 
 dash = {"uid": "bdi-results", "title": "BDI · Kết quả thí nghiệm", "timezone": "utc", "schemaVersion": 39,
         "time": {"from": "now-6h", "to": "now"}, "refresh": "", "panels": P, "editable": True,

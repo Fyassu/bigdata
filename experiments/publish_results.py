@@ -26,10 +26,14 @@ TABLES = {
     "exp_e3": "e3/tradeoff.csv",
     "exp_e4": "e4/incidents.csv",
     "exp_e5": "e5/linkage.csv",
-    "exp_e6": "e6/approx_local.csv",
+    "exp_e6": "e6/approx_idle_minh.csv",       # đo lại khi máy rảnh (01/11)
+    "exp_e6_busy": "e6/approx_local.csv",      # lần đo cũ khi máy tải cao (14/10)
     "exp_e7_sweep": "e7/sweep.csv",
     "exp_c5": "c5/source_quality.csv",
     "exp_e7_sb": "e7/stream_vs_batch.csv",
+    "exp_e7_luna": "e7/sweep_luna.csv",
+    "exp_c2": "c2/counterfactual.csv",
+    "exp_desc": "desc/pair_month.csv",
 }
 
 
@@ -82,6 +86,11 @@ def main() -> None:
             write_table(conn, "exp_e7_daily", d)
         else:
             write_table(conn, "exp_e7_daily", e7_daily())
+        luna = res / "e7" / "alerts_per_day_luna.csv"
+        if luna.exists():
+            d = pd.read_csv(luna)
+            d["day"] = d["day"].str[5:]  # 2022-05-11 -> 05-11
+            write_table(conn, "exp_e7_luna_daily", d)
         conn.commit()
 
 

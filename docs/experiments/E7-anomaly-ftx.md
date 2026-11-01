@@ -47,7 +47,26 @@ Bảng chọn lọc từ `results/e7/sweep.csv` (báo động log-return, 5 cặ
 **Cấu hình chọn: W = 1 ngày, |M| > 3,5 (giữ đúng ngưỡng Iglewicz–Hoaglin), sàn 0,5%.**
 - 8/11 và 9/11/2022 là **hai ngày nhiều báo động nhất tháng**; riêng 8/11 gấp khoảng 3 lần ngày thứ ba (14/11).
 - Giai đoạn yên 2026 còn khoảng 9 báo động/ngày trên 5 cặp, tức khoảng 1,8/cặp/ngày.
-- Cần ghi rõ trong báo cáo: sàn và cửa sổ được chọn sau khi xem kết quả trên chính tháng 11/2022, nên có rủi ro "khớp theo dữ liệu". Nên kiểm tra lại trên một sự kiện khác chưa dùng để chọn tham số (ví dụ LUNA 5/2022).
+- Cần ghi rõ trong báo cáo: sàn và cửa sổ được chọn sau khi xem kết quả trên chính tháng 11/2022, nên có rủi ro "khớp theo dữ liệu". Đã kiểm lại trên LUNA 5/2022, xem mục dưới.
+
+### Kiểm tra ngoài mẫu trên LUNA 5/2022 (01/11/2026)
+
+Giữ nguyên cấu hình chọn, không chỉnh sau khi xem kết quả:
+
+```bash
+python -m bdi.ingest.download --kind aggTrades klines --months 2022-05
+python experiments/lake_windows.py candles --periods 2022-05 2026-06 2026-07 2026-08   # máy không có Postgres
+python experiments/e7_anomaly.py --lake --month 2022-05 --event-days 2022-05-09 2022-05-10 2022-05-11 2022-05-12     --windows 1440 --thresholds 3.5 --floors 0.005 --tag luna
+```
+
+| Ngày | 9/5 | 10/5 | 11/5 | 12/5 | Hạng 5 (26/5) | Trung vị ngày |
+|---|---|---|---|---|---|---|
+| Báo động (5 cặp) | 237 | 82 | **384** | 106 | 80 | 23,5 |
+| Hạng trong tháng | 2 | 4 | **1** | 3 | 5 | |
+
+- Bốn ngày sự kiện là bốn hạng đầu của tháng. Ngày 10/5 chỉ hơn ngày hạng 5 hai báo động.
+- `--lake` đọc nến từ `data/lake/gold/candles_batch`; với tháng 11/2022 cách đọc này tái lập **giống hệt** `sweep.csv` dựng từ Postgres.
+- Kết quả: `results/e7/sweep_luna.csv`, `results/e7/alerts_per_day_luna.png`.
 
 Hình: `results/e7/ftx_btc.png` (giá BTC + điểm bất thường) và `results/e7/alerts_per_day_nov22.png` (báo động theo ngày).
 
@@ -97,7 +116,7 @@ experiments/e7_stress.sh stress        # SPEEDS="1 10 50 100 200 500 1000", dừ
 ## Checklist
 
 - [x] Bảng quét tham số + hình FTX (cấu hình chọn: 8–9/11 là top-2 ngày)
-- [ ] Kiểm tra lại trên sự kiện khác (LUNA 5/2022) để tránh chọn tham số theo dữ liệu
+- [x] Kiểm tra lại trên sự kiện khác (LUNA 5/2022): 9–12/5 là top-4 ngày của tháng
 - [x] Replay 100× có cảnh báo trên stream: 111/111 trùng batch, nến 5 758/5 758 khớp official
 - [x] Throughput sơ bộ: xử lý 13,9k (trung vị) – 25,5k (tối đa) bản tin/s, khoảng 750–1 370 lần lưu lượng live
 - [ ] Stress test theo bậc tốc độ (`e7_stress.sh stress`) trên máy rảnh
