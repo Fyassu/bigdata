@@ -22,6 +22,7 @@ Không gộp qty của các cặp khác đơn vị (BTC vs XRP) — vô nghĩa.
 from __future__ import annotations
 
 import argparse
+import os
 import time
 
 import _common
@@ -55,7 +56,14 @@ def main() -> None:
     a = ap.parse_args()
 
     spark = get_spark("e6_approx")
-    df = (spark.read.parquet(str(path("lake") / "silver" / "trades"))
+    silver = path("lake") / "silver" / "trades"
+    if os.name == "nt":
+        # Windows không có winutils: Spark không liệt kê được thư mục, nên truyền danh sách file
+        from lake_windows import lake_files
+        reader = spark.read.option("basePath", str(silver)).parquet(*lake_files(silver))
+    else:
+        reader = spark.read.parquet(str(silver))
+    df = (reader
           .select("symbol", "agg_id", "price", (F.col("price") * F.col("qty")).cast("double").alias("notional")))
     n = df.count()
     print(f"[e6] {n:,} dòng", flush=True)

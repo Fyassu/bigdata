@@ -59,9 +59,23 @@ Với cột nhiều giá trị phân biệt, HyperLogLog++ **nhanh hơn 12,7 l�
 - Sai số **giá trị** có thể rất lớn vì notional có đuôi cực dày (lệch 1% thứ hạng quanh p99 đổi giá trị nhiều bậc). Kết luận cho báo cáo: với dữ liệu đuôi dày, phải đặt `relErr` nhỏ (≤ 0,001) hoặc chỉ dùng xấp xỉ cho trung vị.
 - (*) Thời gian relErr 0,01/0,05 dài hơn relErr 0,001 là do tải máy dao động mạnh lúc đo, không phản ánh chi phí thuật toán. Cần đo lại trên máy rảnh.
 
+## Đo lại khi máy rảnh (01/11/2026)
+
+Máy Minh (Windows, rảnh), 418 156 831 dòng (chỉ 4 tháng, không có file theo ngày), heap 6 GB, `--repeats 3`, `--tag idle_minh`. Silver dựng bằng `experiments/lake_windows.py silver` (Windows thiếu winutils nên Spark không ghi được parquet); đã kiểm giống hệt silver của Spark, 0 dòng khác biệt.
+
+| Truy vấn | Chính xác | rsd/relErr 0,01 | 0,05 | 0,1 / — |
+|---|---|---|---|---|
+| Đếm phân biệt `price` (2,9M) | 17,9 s | 19,6 s · 1,6% | 15,7 s · 8,5% | 15,8 s · 14,6% |
+| Đếm phân biệt `agg_id` (418M) | 238,2 s | **9,6 s · 0,80%** | 6,6 s · 7,1% | 6,5 s · 10,7% |
+| Phân vị notional, relErr 0,001 / 0,01 / 0,05 | (OOM, lần cũ) | 37,5 s · thứ hạng 0,057% | 36,4 s · 1,00% | 36,3 s · 5,00% |
+
+- **Đạt tiêu chí:** phân vị nhanh dần theo relErr 0,001 → 0,01 → 0,05, nhưng chỉ chênh 3%: chi phí nằm ở quét dữ liệu, không ở sketch.
+- HyperLogLog++ trên `agg_id` nhanh hơn **24,7 lần** (lần đo tải cao: 12,7 lần).
+- Kết quả: `results/e6/approx_idle_minh.csv`, `results/e6/error_vs_time_idle_minh.png`.
+
 ## Checklist
 
 - [x] Bảng sai số và thời gian
 - [x] Nhận xét: sai số thực tế so với `rsd` lý thuyết
-- [ ] Đo lại thời gian trên máy rảnh
+- [x] Đo lại thời gian trên máy rảnh (01/11, máy Minh)
 - [ ] (mở rộng) so sánh 1 worker và 2 worker
