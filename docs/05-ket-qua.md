@@ -63,6 +63,15 @@ Xem trực quan:
 - Câu hỏi mở của C3: official của 5 cặp × 4 tháng **không có phút `trades = 0`**, nên `EMPTY_MINUTE` không xảy ra với các cặp thanh khoản cao này.
 - Hình: `results/e2/heatmap_all_match.png` (mọi ô 100%; trên slide nên dùng bảng hoặc con số lớn).
 
+**Phản chứng C2** (`experiments/c2_counterfactual.py`, 01/11/2026, cùng 878 400 nến, trade đã xáo thứ tự): bỏ từng điểm kỹ thuật thì còn khớp bao nhiêu.
+
+| Biến thể sai | % phút khớp official |
+|---|---|
+| Open = `first(price)` / Close = `last(price)` | 13,29% / 14,42% |
+| Volume cộng bằng `double`, so tuyệt đối | 47,83% (làm tròn 8 chữ số: 99,999%) |
+| trades = số dòng aggTrade | 0,47% (trung vị 3,7 trade/aggTrade) |
+| `quote_volume` như `build_candles` hiện tại | BTCUSDT chỉ 0,19% (tích Decimal bị làm tròn về 6 chữ số lẻ); cách sửa `decimal(18,8) × decimal(18,8)` khớp 100% |
+
 ## E3 · Trade-off watermark — chứng minh C2, C3, C5
 
 **Độ đảo thứ tự thật** (52 407 bản tin, 30 phút, 5 cặp):
