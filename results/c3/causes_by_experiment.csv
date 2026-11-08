@@ -1,0 +1,23 @@
+thi_nghiem,run_id,mo_ta,n_nen,n_lech,CAPTURE_START,LATE_BEYOND_WATERMARK,DISCONNECT_GAP,DUPLICATE,EMPTY_MINUTE,NUMERIC_PRECISION,UNKNOWN,chua_gan_nhan
+E2,e2,"Batch vs official, 5 cặp × 4 tháng",878400,0,0,0,0,0,0,0,0,0
+E3,e3_wm0,"Watermark 0 s, trigger 2 s",140,0,0,0,0,0,0,0,0,0
+E3,e3_wm2,"Watermark 2 s, trigger 2 s",140,0,0,0,0,0,0,0,0,0
+E3,e3_wm5,"Watermark 5 s, trigger 2 s",140,0,0,0,0,0,0,0,0,0
+E3,e3_wm10,"Watermark 10 s, trigger 2 s",140,0,0,0,0,0,0,0,0,0
+E3,e3_wm30,"Watermark 30 s, trigger 2 s",140,0,0,0,0,0,0,0,0,0
+E3,e3_wm0_t0,"Watermark 0 s, trigger mặc định",140,0,0,0,0,0,0,0,0,0
+E3,e3_wm2_t0,"Watermark 2 s, trigger mặc định",140,0,0,0,0,0,0,0,0,0
+E3,e3_wm5_t0,"Watermark 5 s, trigger mặc định",140,0,0,0,0,0,0,0,0,0
+E3,e3_wm0_j5x20,"Watermark 0 s, trigger 2 s, jitter 5%/20 s",140,137,0,0,0,0,0,0,0,137
+E3,e3_wm2_j5x20,"Watermark 2 s, trigger 2 s, jitter 5%/20 s",140,137,0,0,0,0,0,0,0,137
+E3,e3_wm5_j5x20,"Watermark 5 s, trigger 2 s, jitter 5%/20 s",140,136,0,0,0,0,0,0,0,136
+E3,e3_wm10_j5x20,"Watermark 10 s, trigger 2 s, jitter 5%/20 s",140,133,0,0,0,0,0,0,0,133
+E3,e3_wm30_j5x20,"Watermark 30 s, trigger 2 s, jitter 5%/20 s",140,0,0,0,0,0,0,0,0,0
+E4,chaos:ws_kill,"Chaos ws_kill, sập 64 s",80,0,0,0,0,0,0,0,0,0
+E4,chaos:ws_netcut,"Chaos ws_netcut, sập 91 s",80,0,0,0,0,0,0,0,0,0
+E4,chaos:spark_kill,"Chaos spark_kill, sập 66 s",85,0,0,0,0,0,0,0,0,0
+E4,chaos:kafka_restart,"Chaos kafka_restart, sập 3 s",65,0,0,0,0,0,0,0,0,0
+E4,e4_sleep,"Máy ngủ ~5,7 giờ, backfill khi nối lại",2570,0,0,0,0,0,0,0,0,0
+E7,e7_ftx_stream,Replay FTX 100× trên stream,5758,0,0,0,0,0,0,0,0,0
+Live,live_d0,Luồng live ngày đầu,470,5,5,0,0,0,0,0,0,0
+Tổng,,,889328,548,5,0,0,0,0,0,0,543
