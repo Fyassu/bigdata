@@ -34,8 +34,8 @@
 - [x] `python -m bdi.batch.build_batch`: 418M dòng, khoảng 70 phút
 - [x] **E1** (SOL + XRP): [kết quả](experiments/E1-drift-ablation.md) → `results/e1/ablation.csv`. Naive hỏng 100% ở 2026, drift-aware đúng 100%
 - [x] E1 cho đủ 5 cặp × 4 tháng (25/10): 40 dòng, naive hỏng 100% ở 15/15 tổ hợp 2026, drift-aware đúng 100%; 8 dòng cũ tái lập trên máy khác; có hình `results/e1/ablation.png`
-- [ ] E7 kiểm tra lại trên sự kiện khác (LUNA 5/2022) để tránh chọn tham số theo dữ liệu
-- [ ] E6 đo lại thời gian trên máy rảnh
+- [x] E7 kiểm tra lại trên LUNA 5/2022, giữ nguyên tham số: 9–12/5 là top-4 ngày (01/11)
+- [x] E6 đo lại thời gian trên máy rảnh: HLL nhanh 24,7 lần, phân vị nhanh dần theo relErr (01/11)
 - [x] **E2**: [kết quả](experiments/E2-batch-vs-official.md). **878 400/878 400 nến khớp tuyệt đối**
 - [x] Kiểm tra câu hỏi mở của C3: official của 5 cặp × 4 tháng **không có phút nào `trades = 0`**, và mọi tháng đủ phút. Với các cặp thanh khoản cao này, `EMPTY_MINUTE` không xảy ra (cần ghi rõ phạm vi khi kết luận)
 - [ ] Viết nháp mục báo cáo C1 và C2: ba điểm kỹ thuật (min_by/max_by, Decimal, số trades), dẫn chứng bằng `tests/test_candles.py`
@@ -61,7 +61,7 @@
 - [x] **E7** replay FTX 100× trên stream: báo động stream trùng batch 111/111; nến khớp official 5 758/5 758
 - [x] E7 throughput sơ bộ: 13,9k–25,5k bản tin/s (khoảng 750–1 370 lần live)
 - [ ] **E7** stress test theo bậc (`e7_stress.sh stress`) trên máy rảnh → `results/e7/stress.png`
-- [ ] Thống kê mô tả (Mảng 4): số dòng, phân bố trades/phút, khối lượng theo cặp × tháng
+- [x] Thống kê mô tả: `experiments/descriptive_stats.py` → `results/desc/`; khớp klines 100% (01/11)
 
 ## Tuần 4: Tổng hợp + báo cáo + demo
 
