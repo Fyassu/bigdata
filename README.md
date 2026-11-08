@@ -59,10 +59,10 @@ make live-status              # sau khoảng 2 phút sẽ thấy nến source='s
 |---|---|---|---|
 | C1 | Lược đồ chuẩn nhận biết schema drift | `src/bdi/timeutil.py`, `src/bdi/schema.py`, `tests/test_timeutil.py` | `experiments/e1_drift_ablation.py` |
 | C2 | Viết một lần, chạy hai tầng | `src/bdi/candles.py`, `tests/test_candles.py` | E2, E3 |
-| C3 | Đối soát 3 nguồn + nhãn nguyên nhân | `src/bdi/reconcile/compare.py`, `src/bdi/reconcile/taxonomy.py` | E2, E3, E4 |
+| C3 | Đối soát 3 nguồn + nhãn nguyên nhân | `src/bdi/reconcile/compare.py`, `src/bdi/reconcile/taxonomy.py` | E2, E3, E4; bảng gộp `experiments/c3_causes.py` |
 | C4 | Record linkage mờ | `src/bdi/linkage/fuzzy.py` | `experiments/e5_linkage.py` |
 | C5 | Chọn nguồn theo độ hội tụ | `src/bdi/metrics.py` | `experiments/c5_source_policy.py`, E3, E4 |
-| C6 | Lineage + ghi idempotent | `src/bdi/lineage.py`, `src/bdi/sink.py`, `sql/init.sql` | `experiments/e4_chaos/chaos.sh batch_rerun` |
+| C6 | Lineage + ghi idempotent | `src/bdi/lineage.py`, `src/bdi/sink.py`, `sql/init.sql` | `experiments/e4_chaos/chaos.sh batch_rerun`, `experiments/c6_lineage.py` |
 
 ```
 src/bdi/
@@ -73,8 +73,8 @@ src/bdi/
   reconcile/ compare.py · taxonomy.py
   linkage/   fuzzy.py
   anomaly/   mzscore.py
-experiments/ e1 … e7, c5, e4_chaos/chaos.sh
-tests/       contract test C1, test C2 (batch = streaming), C3, C4, E7
+experiments/ e1 … e7, c3, c5, c6, e4_chaos/chaos.sh
+tests/       contract test C1, test C2 (batch = streaming, nhiều micro-batch), C3, C4, E7
 sql/init.sql · docker-compose.yml · docker/Dockerfile · grafana/
 data/        (gitignored) raw, lake, checkpoints, state
 results/     bảng CSV + hình PNG cho báo cáo

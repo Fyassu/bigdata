@@ -32,7 +32,7 @@ Xem trực quan:
 | Lưu lượng live | trung bình 18,6 bản tin/s, p95 58/s; phút đông nhất trong 4 tháng lịch sử: 1 980 bản tin/s (22/8/2026 05:10) |
 | Raw archive | 665 255+ bản tin, offset Kafka liên tục, không thiếu/trùng |
 | Công nghệ | PySpark 4.0.4, Kafka 3.9 (KRaft), Postgres 16, Grafana 11, Docker Compose |
-| Test | 21/21 xanh (contract test C1, batch = streaming C2, taxonomy C3, linkage C4, mzscore E7) |
+| Test | 25/25 xanh (contract test C1; batch = streaming C2, gồm nhiều micro-batch, loại trùng và bản tin trễ; taxonomy C3; linkage C4; mzscore E7) |
 
 ---
 
@@ -228,7 +228,8 @@ Time-to-convergence: 100% nến hội tụ, p50 = 13,0 s. (*) p95 bị đội l�
   - live 13/10: 5 nến `CAPTURE_START`, 0 `UNKNOWN`;
   - E3 jitter: lệch do bản tin trễ, được Spark đếm trong `late_rows_dropped`;
   - E2, E4: không có nến lệch.
-- **Lineage**: mỗi nến mang `source`, `file_checksum` (sha256 file zip hoặc `kafka:<topic>` hoặc `rest:/api/v3/klines`), `ingested_at`, `watermark_config`, `pipeline_version`. Khóa idempotent là `(symbol, minute, source)`.
+  - Bảng gộp `experiments/c3_causes.py` → `results/c3/causes_by_experiment.csv` (08/11): 889 328 nến qua 21 lượt, 548 lệch: 5 `CAPTURE_START` (live) và 543 nến của 4 lượt E3 jitter chưa gắn nhãn (chờ `e3_late_labels.py` trên raw archive). Test `test_late_beyond_watermark_is_the_only_divergence` tái hiện đúng cơ chế: Spark bỏ 1 dòng trễ, stream lệch batch đúng ở phút đó.
+- **Lineage**: mỗi nến mang `source`, `file_checksum` (sha256 file zip hoặc `kafka:<topic>` hoặc `rest:/api/v3/klines`), `ingested_at`, `watermark_config`, `pipeline_version`. Khóa idempotent là `(symbol, minute, source)`. `experiments/c6_lineage.py` tính % nến truy được theo từng nguồn (sha256 → URL file Binance trong `manifest.jsonl`; topic Kafka; endpoint REST) và `--trace SYMBOL MINUTE` in một nến qua mọi nguồn kèm số phiên bản và nhãn đối soát. Số chính thức chạy sau lượt 24 giờ.
 
 ## Các bẫy kỹ thuật phát hiện khi chạy thật
 

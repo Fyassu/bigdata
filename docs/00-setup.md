@@ -5,7 +5,7 @@
 | Thành phần | Phiên bản | Ghi chú |
 |---|---|---|
 | Docker + Compose | ≥ 24 / v2 | Chạy Kafka, Postgres, Grafana và pipeline live |
-| Python | 3.11 – 3.14 | Đã kiểm: PySpark 4.0.4 + pandas 3 chạy được trên 3.14 (21/21 test xanh). Image Docker dùng 3.11 |
+| Python | 3.11 – 3.14 | Đã kiểm: PySpark 4.0.4 + pandas 3 chạy được trên 3.14 (21/21 test xanh, 13/10); WSL Ubuntu + Python 3.12 + Java 17: 25/25 (08/11). Image Docker dùng 3.11 |
 | Java | 17 hoặc 21 | Spark 4.0 cần Java ≥ 17 (OpenJDK 21 qua Homebrew là được) |
 | RAM | ≥ 12 GB | Mỗi job Spark của E3 ~1 GB; `GROUP` điều chỉnh số job song song (mặc định 2) |
 | Ổ đĩa | ≈ 40–60 GB | 5 cặp × 4 tháng aggTrades (~185M dòng): CSV + parquet + Kafka |

@@ -18,13 +18,13 @@
 ## Tuần 0: Checkpoint streaming (làm ngay)
 
 - [x] `make up` chạy được, Postgres có đủ bảng (`\dt` trong `make psql`)
-- [x] `make test` xanh: 21/21 test (13/10)
+- [x] `make test` xanh: 21/21 test (13/10); 25/25 sau khi thêm test nhiều micro-batch (08/11)
 - [x] `make up-all`, sau 2 phút `make live-status` thấy nến `stream` của cả 5 cặp
 - [x] Grafana hiển thị panel "Giá đóng cửa theo nguồn" (đã kiểm qua API)
 - [x] `data/lake/bronze/raw_aggtrades/` có file mới sau mỗi 30 giây (offset liên tục, không thiếu/trùng)
 - [ ] **Để luồng live chạy liên tục ≥ 24h** (`caffeinate`). Đây là dữ liệu cho E3, E4, E5 và C5
 - [x] Ghi lại ngày giờ bắt đầu chạy vào đây: `2026-10-13 15:07 UTC` (container `ws-producer`, `stream-candles`, `raw-archive`)
-- [x] Kiểm tra nhanh stream vs official qua REST (`bdi.ingest.rest_klines`): 10/11 phút khớp tuyệt đối mọi trường; phút lệch duy nhất là `CAPTURE_START` (producer khởi động giữa phút). Các lần restart producer đều được backfill và khớp 100%
+- [x] Kiểm tra nhanh stream vs official qua REST (`bdi.ingest.rest_klines`): 10/11 phút khớp tuyệt đối cả 6 trường so (O, H, L, C, V, trades); phút lệch duy nhất là `CAPTURE_START` (producer khởi động giữa phút). Các lần restart producer đều được backfill và khớp 100%
 
 ## Tuần 1: Nền tảng batch + E1 + E2 (Mảng 1)
 
@@ -65,10 +65,12 @@
 
 ## Tuần 4: Tổng hợp + báo cáo + demo
 
-- [ ] **C3**: bảng phân bố nguyên nhân lệch gộp từ E2, E3, E4
+- [ ] **C3**: bảng phân bố nguyên nhân lệch gộp từ E2, E3, E4. Script `experiments/c3_causes.py` → `results/c3/causes_by_experiment.csv` đã có (08/11); còn chờ nhãn E3 jitter (`e3_late_labels.py`, cần raw archive) và các lượt của ngày D
 - [x] **C5** sơ bộ: [kết quả](experiments/C5-source-policy.md). TTC p50 = 13 s, 100% nến hội tụ; bảng quy tắc chọn nguồn đã có số liệu
 - [ ] C5: đo lại trên 24h live khi máy rảnh, thêm cột batch sau T+1
-- [ ] **C6**: mô tả lineage, dẫn chứng bằng `SELECT source, file_checksum, watermark_config, pipeline_version FROM candles LIMIT 5`
+- [ ] **C6**: mô tả lineage, dẫn chứng bằng `SELECT source, file_checksum, watermark_config, pipeline_version FROM candles LIMIT 5`. Script `experiments/c6_lineage.py` (% nến truy được theo nguồn, `--trace` một nến) đã chạy thử trên Postgres WSL (08/11); số chính thức chạy sau lượt 24 giờ
+- [x] Test batch = streaming với nhiều micro-batch: update mode, append + loại trùng, bản tin trễ quá watermark bị bỏ đúng 1 dòng (08/11, chạy trong WSL)
+- [x] `make results` trên Postgres + Grafana thật: 19/20 panel có truy vấn ra dữ liệu; panel còn lại đọc `ws_gaps` live, rỗng khi luồng live chưa chạy (08/11)
 - [ ] Chốt toàn bộ hình trong `results/` và đưa vào báo cáo
 - [ ] Tập demo theo [04-demo.md](04-demo.md) ít nhất 2 lần
 

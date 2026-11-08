@@ -36,9 +36,11 @@ python experiments/e2_batch_vs_official.py --run-id e2
 
 ## Kết quả sơ bộ
 
-| Cặp | Tháng | Số nến | % khớp tuyệt đối mọi trường |
+| Cặp | Tháng | Số nến | % khớp tuyệt đối (O, H, L, C, V, trades) |
 |---|---|---|---|
-| 5 cặp (BNB, BTC, ETH, SOL, XRP) | 2022-11, 2026-06, 2026-07, 2026-08 | **878 400** | **100%** ở mọi trường (O, H, L, C, V, trades), 0 nến thiếu ở cả hai phía |
+| 5 cặp (BNB, BTC, ETH, SOL, XRP) | 2022-11, 2026-06, 2026-07, 2026-08 | **878 400** | **100%** ở cả 6 trường được so (O, H, L, C, V, trades), 0 nến thiếu ở cả hai phía |
+
+`quote_volume` không nằm trong phép so của `compare`. Đo riêng ở phản chứng C2 (`results/c2/counterfactual.csv`): BTCUSDT chỉ khớp 0,19% do Spark làm tròn tích Decimal, bốn cặp còn lại 100% (xem [05-ket-qua.md](../05-ket-qua.md) mục C2).
 
 Batch dựng từ 418 156 831 aggTrades (~70 phút trên máy 16 GB, local[*]). Không có nến lệch nên không có nhãn nguyên nhân nào; hình `causes.png` không được tạo. Kết quả này chứng minh C2: `min_by`/`max_by`, Decimal và `sum(last − first + 1)` tái tạo chính xác klines của Binance.
 
